@@ -1,2 +1,7 @@
-# tw-rally-watch
-Published Taiwan equity watch website. This repository contains public deployment assets only; source code remains private.
+# 台股強漲追蹤
+
+這個公開儲存庫只保存網站部署檔與公開行情快照。網站原始碼與伺服器設定維持在私人儲存庫。
+
+公開資料：上市櫃普通股 120 個交易日行情、成交量、成交金額、產業分類及策略結果。
+
+網站由 GitHub Pages 發布；資料日期與更新時間以網站顯示為準。
