@@ -46,7 +46,10 @@ h1{font-size:26px;margin:24px 0 6px}
 #tab-note{font-size:13px;color:var(--muted);padding:0 18px 12px;line-height:1.6}
 .scroll{overflow-x:auto}
 table{border-collapse:collapse;width:100%;white-space:nowrap}
-th{text-align:left;background:var(--soft);border-top:1px solid #edf0f1;border-bottom:1px solid #edf0f1;font-size:13px;font-weight:500;color:#94a0a7;padding:11px 12px}
+th{text-align:left;background:var(--soft);border-top:1px solid #edf0f1;border-bottom:1px solid #edf0f1;font-size:13px;font-weight:500;color:#94a0a7;padding:0}
+th .sort{display:flex;align-items:center;gap:3px;width:100%;border:0;background:none;padding:11px 12px;font:inherit;color:inherit;text-align:inherit;white-space:nowrap}
+th.numeric .sort{justify-content:flex-end}th .sort:hover{color:#3e6670;background:#eef3f3}th .sort.on{color:#173d42;font-weight:600}
+th .sort i{font-style:normal;font-size:10px;min-width:8px}
 td{padding:11px 12px;border-bottom:1px solid #f0f2f3;font-size:14px}
 tbody tr[data-i]{cursor:pointer}tbody tr[data-i]:hover{background:#f6fbf9}
 td.stock b{display:block;font-size:15px}td.stock span{display:block;font-size:12px;color:#93a1a9;margin-top:3px}

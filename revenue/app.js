@@ -5,7 +5,7 @@ import {deriveKey, decryptPayload, exportRawKey, importRawKey} from './crypto.mj
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const STORE = 'tw-rally-revenue-key';
-const state = {data: null, tab: 'fresh', day: 0, query: '', rows: [], open: -1};
+const state = {data: null, tab: 'fresh', day: 0, query: '', rows: [], open: -1, sort: null};
 
 // ---------------------------------------------------------------- month maths (mirrors fc_score/accel.py)
 export function mshift(m, n) {
@@ -110,13 +110,43 @@ function volumeOn(code, day) {
   return hit && hit[2] != null ? hit[2] : null;
 }
 const fmtVol = v => v == null ? '—' : v.toLocaleString('en-US');
-const COLS = [['代號', r => `<b>${esc(r.code)}</b><span>${esc(r.name)}</span>`, 'stock'],
-  ['成交量(張)', r => fmtVol(volumeOn(r.code, state.data.dates[state.day].date)), 'numeric'],
-  ['資料月', r => esc(r['資料截至月'])], ['營收(億)', r => esc(r['最新月營收(億)']), 'numeric'],
-  ['單月年增', r => pct(r['單月年增%']), 'numeric'], ['YoY3', r => pct(r['YoY3%']), 'numeric'],
-  ['前3月YoY3', r => pct(r['前3月YoY3%']), 'numeric'], ['ACC', r => `<b class="up">${esc(r['ACC(pp)'])}</b> pp`, 'numeric'],
-  ['G2', r => pct(r['G2%']), 'numeric'], ['連升', r => esc(r['連續上升月數']), 'numeric']];
+const listDay = () => state.data.dates[state.day].date;
+// sort keys: numbers parsed from the CSV text; '' / missing become null and always sort last
+export const num = v => v === '' || v == null || Number.isNaN(parseFloat(v)) ? null : parseFloat(v);
+const flagsOf = r => (r['警示'] || '').split('、').filter(Boolean);
+// [header, cell html, css class, sort key]
+const COLS = [['代號', r => `<b>${esc(r.code)}</b><span>${esc(r.name)}</span>`, 'stock', r => r.code],
+  ['成交量(張)', r => fmtVol(volumeOn(r.code, listDay())), 'numeric', r => volumeOn(r.code, listDay())],
+  ['資料月', r => esc(r['資料截至月']), '', r => r['資料截至月'] || null],
+  ['營收(億)', r => esc(r['最新月營收(億)']), 'numeric', r => num(r['最新月營收(億)'])],
+  ['單月年增', r => pct(r['單月年增%']), 'numeric', r => num(r['單月年增%'])],
+  ['YoY3', r => pct(r['YoY3%']), 'numeric', r => num(r['YoY3%'])],
+  ['前3月YoY3', r => pct(r['前3月YoY3%']), 'numeric', r => num(r['前3月YoY3%'])],
+  ['ACC', r => `<b class="up">${esc(r['ACC(pp)'])}</b> pp`, 'numeric', r => num(r['ACC(pp)'])],
+  ['G2', r => pct(r['G2%']), 'numeric', r => num(r['G2%'])],
+  ['連升', r => esc(r['連續上升月數']), 'numeric', r => num(r['連續上升月數'])]];
+const RET_COL = ['20日漲幅', r => pct(r['20日漲幅%']), 'numeric', r => num(r['20日漲幅%'])];
+const FLAG_COL = ['警示', r => flagsOf(r).map(f =>
+  `<span class="flag"${f === '低基期' && r['低基期說明'] ? ` title="${esc(r['低基期說明'])}"` : ''}>${esc(f)}</span>`).join(''),
+  '', r => flagsOf(r).length || null];
 const pct = v => v === '' || v == null ? '—' : `${esc(v)}%`;
+
+// stable sort by one column; nulls last in both directions; ties keep the list's own order (ACC)
+export function sortRows(rows, key, dir) {
+  const cmp = (a, b) => typeof a === 'string' || typeof b === 'string' ? String(a).localeCompare(String(b), 'zh-Hant') : a - b;
+  return rows.map((r, i) => [key(r), i, r]).sort((x, y) => {
+    if (x[0] == null || y[0] == null) return x[0] == null && y[0] == null ? x[1] - y[1] : x[0] == null ? 1 : -1;
+    return (cmp(x[0], y[0]) * dir) || x[1] - y[1];
+  }).map(x => x[2]);
+}
+
+// header clicks cycle: first direction (numbers high→low, text A→Z), reversed, back to the list order
+function toggleSort(header, numeric) {
+  const first = numeric ? -1 : 1;
+  const s = state.sort;
+  state.sort = !s || s.header !== header ? {header, dir: first} : s.dir === first ? {header, dir: -first} : null;
+  render();
+}
 
 function render() {
   const day = state.data.dates[state.day];
@@ -125,15 +155,20 @@ function render() {
   $('#next-day').disabled = state.day <= 0;
   const all = day[state.tab];
   const q = state.query.toLowerCase();
-  state.rows = q ? all.filter(r => r.code.includes(q) || r.name.toLowerCase().includes(q)) : all;
-  $('#count').textContent = `${state.rows.length} 檔`;
+  const shown = q ? all.filter(r => r.code.includes(q) || r.name.toLowerCase().includes(q)) : all;
   $('#tab-note').textContent = state.tab === 'fresh'
     ? '全市場掃描：符合營收加速四項條件，且 YoY3 剛連升 2～3 個月、3 個月前 YoY3 < 10%、近 20 個交易日股價漲幅 < 10%。'
     : '當日強勢股與成交重心股中：ACC > 0、YoY3 連 2 個月上升、YoY3 ≥ 20%、最新月營收 ≥ 近 12 月最高的 95%。';
-  const extra = state.tab === 'fresh' ? [['20日漲幅', r => pct(r['20日漲幅%']), 'numeric']] : [];
-  const cols = [...COLS, ...extra, ['警示', r => (r['警示'] || '').split('、').filter(Boolean).map(f =>
-    `<span class="flag"${f === '低基期' && r['低基期說明'] ? ` title="${esc(r['低基期說明'])}"` : ''}>${esc(f)}</span>`).join('')]];
-  $('#thead').innerHTML = '<tr>' + cols.map(([h, , c]) => `<th class="${c || ''}">${h}</th>`).join('') + '</tr>';
+  const cols = [...COLS, ...(state.tab === 'fresh' ? [RET_COL] : []), FLAG_COL];
+  const active = state.sort && cols.find(c => c[0] === state.sort.header);
+  state.rows = active ? sortRows(shown, active[3], state.sort.dir) : shown;
+  $('#count').textContent = `${state.rows.length} 檔`;
+  $('#thead').innerHTML = '<tr>' + cols.map(([h, , c]) => {
+    const on = active && active[0] === h, arrow = on ? (state.sort.dir < 0 ? '▼' : '▲') : '';
+    return `<th class="${c || ''}" aria-sort="${on ? (state.sort.dir < 0 ? 'descending' : 'ascending') : 'none'}">`
+      + `<button type="button" class="sort${on ? ' on' : ''}" data-h="${esc(h)}" data-num="${c === 'numeric' ? 1 : ''}">${h}<i>${arrow}</i></button></th>`;
+  }).join('') + '</tr>';
+  document.querySelectorAll('#thead button.sort').forEach(b => b.addEventListener('click', () => toggleSort(b.dataset.h, !!b.dataset.num)));
   $('#tbody').innerHTML = state.rows.length ? state.rows.map((r, i) =>
     `<tr data-i="${i}">` + cols.map(([, f, c]) => `<td class="${c || ''}">${f(r)}</td>`).join('') + '</tr>').join('')
     : `<tr><td colspan="${cols.length}" class="empty">這一天沒有符合條件的股票。</td></tr>`;
