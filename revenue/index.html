@@ -76,7 +76,7 @@ svg{width:100%;height:auto;display:block}
 .grid{stroke:#eef2f3}.tick{font-size:11px;fill:#93a1a9}.value{font-size:12px;fill:#3b5560;font-weight:600}
 .bar{fill:#a9b6bf}.bar-high{fill:#d64545}
 .zero{stroke:#333;stroke-dasharray:4 4}.yoy1{fill:none;stroke:#9aa5b1;stroke-width:1.3}.yoy3{fill:none;stroke:#d62728;stroke-width:3}.dot3{fill:#d62728}
-.close{fill:none;stroke:#2f5d68;stroke-width:1.8}.sma{fill:none;stroke:#e0a43a;stroke-width:1.4}.mark{stroke:#167b70;stroke-dasharray:3 3}.mark-text{font-size:11px;fill:#167b70}
+.close{fill:none;stroke:#2f5d68;stroke-width:1.8}.vol{fill:#c9d3d8}.vol-hot{fill:#d64545}.sma{fill:none;stroke:#e0a43a;stroke-width:1.4}.mark{stroke:#167b70;stroke-dasharray:3 3}.mark-text{font-size:11px;fill:#167b70}
 @media(max-width:640px){.lock-card{padding:24px}.panel{padding:14px 14px 24px}.stats{grid-template-columns:repeat(2,1fr)}h1{font-size:22px}.controls{padding:12px}}
 </style>
 </head>
@@ -96,14 +96,13 @@ svg{width:100%;height:auto;display:block}
   <h1>營收加速</h1>
   <p class="lead">每個交易日更新。點選日期與股票，可看近 18 個月營收（紅色為創 12 個月新高）、單月年增率與 YoY3、收盤價與 20 日均線。僅供個人研究，不構成投資建議。</p>
   <div class="controls">
-    <div class="tabs" role="tablist"><button class="tab" data-tab="fresh" type="button">營收剛轉強</button><button class="tab" data-tab="accel" type="button">營收加速</button></div>
     <button class="icon" id="prev-day" type="button" aria-label="前一天">‹</button>
     <select id="date" aria-label="日期"></select>
     <button class="icon" id="next-day" type="button" aria-label="後一天">›</button>
     <input class="search" id="search" placeholder="搜尋代號或名稱" aria-label="搜尋">
   </div>
   <div class="card">
-    <div class="card-head"><b>名單<span id="count"></span></b></div>
+    <div class="card-head"><b>營收剛轉強＋量增<span id="count"></span></b></div>
     <div id="tab-note"></div>
     <div class="scroll"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
   </div>
@@ -119,6 +118,7 @@ svg{width:100%;height:auto;display:block}
     <h3>近 18 個月營收（億元）</h3><div id="c-rev"></div>
     <h3>年增率</h3><div class="legend"><span><i style="background:#9aa5b1"></i>單月年增率</span><span><i style="background:#d62728"></i>YoY3（3 個月滾動）</span></div><div id="c-yoy"></div>
     <h3>收盤價</h3><div class="legend"><span><i style="background:#2f5d68"></i>收盤價</span><span><i style="background:#e0a43a"></i>20 日均線</span><span><i style="background:#167b70"></i>名單日期</span></div><div id="c-px"></div>
+    <h3>成交量（張）</h3><div class="legend"><span><i style="background:#c9d3d8"></i>每日成交量</span><span><i style="background:#d64545"></i>名單日前 5 天</span></div><div id="c-vol"></div>
   </div>
 </div>
 <script type="module" src="./app.js"></script>

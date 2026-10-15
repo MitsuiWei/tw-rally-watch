@@ -5,7 +5,7 @@ import {deriveKey, decryptPayload, exportRawKey, importRawKey} from './crypto.mj
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const STORE = 'tw-rally-revenue-key';
-const state = {data: null, tab: 'fresh', day: 0, query: '', rows: [], open: -1, sort: null};
+const state = {data: null, day: 0, query: '', rows: [], open: -1, sort: null};
 
 // ---------------------------------------------------------------- month maths (mirrors fc_score/accel.py)
 export function mshift(m, n) {
@@ -79,11 +79,10 @@ function start(data) {
   $('#lock').hidden = true;
   $('#app').hidden = false;
   const sel = $('#date');
-  sel.innerHTML = data.dates.map((d, i) => `<option value="${i}">${esc(d.date)}（剛轉強 ${d.fresh.length}・加速 ${d.accel.length}）</option>`).join('');
+  sel.innerHTML = data.dates.map((d, i) => `<option value="${i}">${esc(d.date)}（${d.fresh.length} 檔）</option>`).join('');
   sel.addEventListener('change', () => { state.day = Number(sel.value); render(); });
   $('#prev-day').addEventListener('click', () => step(1));
   $('#next-day').addEventListener('click', () => step(-1));
-  document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => { state.tab = b.dataset.tab; render(); }));
   $('#search').addEventListener('input', e => { state.query = e.target.value.trim(); render(); });
   $('#lock-now').addEventListener('click', () => { localStorage.removeItem(STORE); location.reload(); });
   $('#generated').textContent = `資料產生時間 ${data.generated_at}`;
@@ -126,6 +125,9 @@ const COLS = [['代號', r => `<b>${esc(r.code)}</b><span>${esc(r.name)}</span>`
   ['G2', r => pct(r['G2%']), 'numeric', r => num(r['G2%'])],
   ['連升', r => esc(r['連續上升月數']), 'numeric', r => num(r['連續上升月數'])]];
 const RET_COL = ['20日漲幅', r => pct(r['20日漲幅%']), 'numeric', r => num(r['20日漲幅%'])];
+const lots = v => num(v) == null ? '—' : num(v).toLocaleString('en-US');
+const VOL_COLS = [['5日均量', r => lots(r['5日均量(張)']), 'numeric', r => num(r['5日均量(張)'])],
+  ['量增倍數', r => num(r['量增倍數']) == null ? '—' : `<b class="up">${esc(r['量增倍數'])}</b> 倍`, 'numeric', r => num(r['量增倍數'])]];
 const FLAG_COL = ['警示', r => flagsOf(r).map(f =>
   `<span class="flag"${f === '低基期' && r['低基期說明'] ? ` title="${esc(r['低基期說明'])}"` : ''}>${esc(f)}</span>`).join(''),
   '', r => flagsOf(r).length || null];
@@ -150,16 +152,14 @@ function toggleSort(header, numeric) {
 
 function render() {
   const day = state.data.dates[state.day];
-  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === state.tab));
   $('#prev-day').disabled = state.day >= state.data.dates.length - 1;
   $('#next-day').disabled = state.day <= 0;
-  const all = day[state.tab];
+  const all = day.fresh;
   const q = state.query.toLowerCase();
   const shown = q ? all.filter(r => r.code.includes(q) || r.name.toLowerCase().includes(q)) : all;
-  $('#tab-note').textContent = state.tab === 'fresh'
-    ? '全市場掃描：符合營收加速四項條件，且 YoY3 剛連升 2～3 個月、3 個月前 YoY3 < 10%、近 20 個交易日股價漲幅 < 10%。'
-    : '當日強勢股與成交重心股中：ACC > 0、YoY3 連 2 個月上升、YoY3 ≥ 20%、最新月營收 ≥ 近 12 月最高的 95%。';
-  const cols = [...COLS, ...(state.tab === 'fresh' ? [RET_COL] : []), FLAG_COL];
+  $('#tab-note').textContent = '全市場掃描：營收加速四項條件，且 YoY3 剛連升 2～3 個月、3 個月前 YoY3 < 10%；'
+    + '近 20 個交易日股價漲幅 < 10%；而且量增（近 5 日均量 ≥ 300 張，且是近 60 日均量的 1.5 倍以上）。';
+  const cols = [...COLS, RET_COL, ...VOL_COLS, FLAG_COL];
   const active = state.sort && cols.find(c => c[0] === state.sort.header);
   state.rows = active ? sortRows(shown, active[3], state.sort.dir) : shown;
   $('#count').textContent = `${state.rows.length} 檔`;
@@ -187,7 +187,8 @@ function openDetail(i) {
   const flags = (r['警示'] || '').split('、').filter(Boolean);
   $('#d-stats').innerHTML = [['YoY3', pct(r['YoY3%'])], ['前3月 YoY3', pct(r['前3月YoY3%'])], ['ACC', `${esc(r['ACC(pp)'])} pp`],
     ['G2（兩年）', pct(r['G2%'])], ['連續上升', `${esc(r['連續上升月數'])} 個月`], ['最新月營收', `${esc(r['最新月營收(億)'])} 億`],
-    ['名單日成交量', `${fmtVol(volumeOn(r.code, day))} 張`]]
+    ['名單日成交量', `${fmtVol(volumeOn(r.code, day))} 張`],
+    ['5日／60日均量', `${lots(r['5日均量(張)'])}／${lots(r['60日均量(張)'])} 張`], ['量增倍數', num(r['量增倍數']) == null ? '—' : `${esc(r['量增倍數'])} 倍`]]
     .map(([k, v]) => `<div><small>${k}</small><b>${v}</b></div>`).join('');
   $('#d-flags').innerHTML = flags.length ? '警示：' + flags.map(f => `<span class="flag">${esc(f)}</span>`).join('') : '';
   $('#d-notes').innerHTML = lowBaseNotes(r);
@@ -196,6 +197,7 @@ function openDetail(i) {
   $('#c-rev').innerHTML = revenueChart(R, months);
   $('#c-yoy').innerHTML = yoyChart(R, months);
   $('#c-px').innerHTML = priceChart(s.px || [], day);
+  $('#c-vol').innerHTML = volumeChart(s.px || [], day);
   $('#detail').hidden = false;
   document.body.classList.add('noscroll');
 }
@@ -286,6 +288,24 @@ function priceChart(px, day) {
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="收盤價與 20 日均線">${axisY(lo, hi, v => v.toFixed(v >= 100 ? 0 : 1))}
     ${line(sma.map((v, k) => v == null ? null : [xs[k], Y(v)]), 'sma')}${line(closes.map((v, k) => [xs[k], Y(v)]), 'close')}${mark}
     ${ticks.map(k => `<text x="${xs[k]}" y="${H - 12}" class="tick" text-anchor="middle">${esc(rows[k][0].slice(5))}</text>`).join('')}</svg>`;
+}
+
+// daily volume (張) on the same 160 sessions as the price chart; the 5 sessions up to the list date in red
+function volumeChart(px, day) {
+  const rows = px.slice(-160).filter(r => r[2] != null);
+  if (rows.length < 2) return '<p class="empty">沒有成交量資料</p>';
+  const VH = 150, top = 10, bottom = VH - 30, hi = Math.max(...rows.map(r => r[2])) || 1;
+  const di = rows.findIndex(r => r[0] >= day), end = di >= 0 ? di : rows.length - 1;
+  const step = (W - PAD.l - PAD.r) / rows.length, bw = Math.max(1, step * 0.7);
+  const bars = rows.map((r, k) => {
+    const h = r[2] / hi * (bottom - top), x = PAD.l + k * step;
+    return `<rect x="${x.toFixed(1)}" y="${(bottom - h).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" class="${k > end - 5 && k <= end ? 'vol-hot' : 'vol'}"/>`;
+  }).join('');
+  const ticks = [0, Math.floor(rows.length / 3), Math.floor(rows.length * 2 / 3), rows.length - 1];
+  return `<svg viewBox="0 0 ${W} ${VH}" role="img" aria-label="每日成交量">
+    <line x1="${PAD.l}" x2="${W - PAD.r}" y1="${bottom}" y2="${bottom}" class="grid"/>
+    <text x="${PAD.l - 6}" y="${top + 8}" class="tick" text-anchor="end">${Math.round(hi).toLocaleString('en-US')}</text>${bars}
+    ${ticks.map(k => `<text x="${(PAD.l + k * step + bw / 2).toFixed(1)}" y="${VH - 10}" class="tick" text-anchor="middle">${esc(rows[k][0].slice(5))}</text>`).join('')}</svg>`;
 }
 
 if (typeof document !== 'undefined') {
