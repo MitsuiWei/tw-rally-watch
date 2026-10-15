@@ -63,6 +63,10 @@ td.stock b{display:block;font-size:15px}td.stock span{display:block;font-size:12
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 14px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:14px 0;margin:14px 0}
 .stats small{display:block;font-size:12px;color:#91a0a9;margin-bottom:4px}.stats b{font-size:15px;font-weight:600;color:#3e6670}
 #d-flags{font-size:13px;color:#a37c3f;margin-bottom:6px}
+.notes{background:#fbf6ec;border:1px solid #f0e2c6;border-radius:9px;padding:4px 16px 12px;margin:12px 0 4px;font-size:14px;line-height:1.7;color:#4b5a63}
+.notes h3{margin:10px 0 4px;color:#8a6a2f}.notes p{margin:4px 0}.notes b{color:#6f5524}
+.notes ul{margin:6px 0;padding-left:18px}.notes li{margin:4px 0}.notes li span{display:block;font-size:12px;color:#a08355}
+.notes li em{display:block;font-style:normal;color:#6b7b84;font-size:13px}.notes small{display:block;color:#a39a8a;font-size:12px;margin-top:6px}
 h3{font-size:15px;margin:18px 0 6px;color:#3b5560}
 .legend{font-size:12px;color:#86969f;display:flex;gap:16px;flex-wrap:wrap}.legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:5px}
 svg{width:100%;height:auto;display:block}
@@ -108,6 +112,7 @@ svg{width:100%;height:auto;display:block}
     <h2 id="d-title"></h2>
     <div class="stats" id="d-stats"></div>
     <div id="d-flags"></div>
+    <div class="notes" id="d-notes" hidden></div>
     <h3>近 18 個月營收（億元）</h3><div id="c-rev"></div>
     <h3>年增率</h3><div class="legend"><span><i style="background:#9aa5b1"></i>單月年增率</span><span><i style="background:#d62728"></i>YoY3（3 個月滾動）</span></div><div id="c-yoy"></div>
     <h3>收盤價</h3><div class="legend"><span><i style="background:#2f5d68"></i>收盤價</span><span><i style="background:#e0a43a"></i>20 日均線</span><span><i style="background:#167b70"></i>名單日期</span></div><div id="c-px"></div>

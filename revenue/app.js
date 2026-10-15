@@ -123,7 +123,8 @@ function render() {
     ? '全市場掃描：符合營收加速四項條件，且 YoY3 剛連升 2～3 個月、3 個月前 YoY3 < 10%、近 20 個交易日股價漲幅 < 10%。'
     : '當日強勢股與成交重心股中：ACC > 0、YoY3 連 2 個月上升、YoY3 ≥ 20%、最新月營收 ≥ 近 12 月最高的 95%。';
   const extra = state.tab === 'fresh' ? [['20日漲幅', r => pct(r['20日漲幅%']), 'numeric']] : [];
-  const cols = [...COLS, ...extra, ['警示', r => (r['警示'] || '').split('、').filter(Boolean).map(f => `<span class="flag">${esc(f)}</span>`).join('')]];
+  const cols = [...COLS, ...extra, ['警示', r => (r['警示'] || '').split('、').filter(Boolean).map(f =>
+    `<span class="flag"${f === '低基期' && r['低基期說明'] ? ` title="${esc(r['低基期說明'])}"` : ''}>${esc(f)}</span>`).join('')]];
   $('#thead').innerHTML = '<tr>' + cols.map(([h, , c]) => `<th class="${c || ''}">${h}</th>`).join('') + '</tr>';
   $('#tbody').innerHTML = state.rows.length ? state.rows.map((r, i) =>
     `<tr data-i="${i}">` + cols.map(([, f, c]) => `<td class="${c || ''}">${f(r)}</td>`).join('') + '</tr>').join('')
@@ -145,12 +146,25 @@ function openDetail(i) {
     ['G2（兩年）', pct(r['G2%'])], ['連續上升', `${esc(r['連續上升月數'])} 個月`], ['最新月營收', `${esc(r['最新月營收(億)'])} 億`]]
     .map(([k, v]) => `<div><small>${k}</small><b>${v}</b></div>`).join('');
   $('#d-flags').innerHTML = flags.length ? '警示：' + flags.map(f => `<span class="flag">${esc(f)}</span>`).join('') : '';
+  $('#d-notes').innerHTML = lowBaseNotes(r);
+  $('#d-notes').hidden = !$('#d-notes').innerHTML;
   const months = Array.from({length: 18}, (_, k) => mshift(r['資料截至月'], k - 17));
   $('#c-rev').innerHTML = revenueChart(R, months);
   $('#c-yoy').innerHTML = yoyChart(R, months);
   $('#c-px').innerHTML = priceChart(s.px || [], day);
   $('#detail').hidden = false;
   document.body.classList.add('noscroll');
+}
+
+// 低基期: why the growth rate looks so big, and announcements that may explain the jump
+function lowBaseNotes(r) {
+  if (!r['低基期說明']) return '';
+  const items = (r['公告'] || []).slice(0, 4).map(a => `<li><span>${esc(a.date)}・${esc(a.category)}</span>${esc(a.subject)}`
+    + (a.why ? `<em>${esc(a.why)}</em>` : '') + '</li>').join('');
+  return `<h3>為什麼成長率這麼高</h3><p><b>去年賺得少：</b>${esc(r['低基期說明'])}。</p>`
+    + (r['可能原因'] ? `<p><b>可能原因：</b>${esc(r['可能原因'])}</p>` : '')
+    + (items ? `<ul>${items}</ul>` : '')
+    + '<small>可能原因依公司重大訊息主旨與產業別推估，只是線索，請再查證公告內容。</small>';
 }
 
 function closeDetail() {
