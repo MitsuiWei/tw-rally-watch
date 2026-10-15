@@ -103,7 +103,15 @@ function step(delta) {
   render();
 }
 
+// trading volume (張) on the list date, from the official quotes in the payload
+function volumeOn(code, day) {
+  const p = (state.data.stocks[code] || {}).px || [];
+  const hit = p.find(x => x[0] === day);
+  return hit && hit[2] != null ? hit[2] : null;
+}
+const fmtVol = v => v == null ? '—' : v.toLocaleString('en-US');
 const COLS = [['代號', r => `<b>${esc(r.code)}</b><span>${esc(r.name)}</span>`, 'stock'],
+  ['成交量(張)', r => fmtVol(volumeOn(r.code, state.data.dates[state.day].date)), 'numeric'],
   ['資料月', r => esc(r['資料截至月'])], ['營收(億)', r => esc(r['最新月營收(億)']), 'numeric'],
   ['單月年增', r => pct(r['單月年增%']), 'numeric'], ['YoY3', r => pct(r['YoY3%']), 'numeric'],
   ['前3月YoY3', r => pct(r['前3月YoY3%']), 'numeric'], ['ACC', r => `<b class="up">${esc(r['ACC(pp)'])}</b> pp`, 'numeric'],
@@ -143,7 +151,8 @@ function openDetail(i) {
   $('#d-next').disabled = i >= state.rows.length - 1;
   const flags = (r['警示'] || '').split('、').filter(Boolean);
   $('#d-stats').innerHTML = [['YoY3', pct(r['YoY3%'])], ['前3月 YoY3', pct(r['前3月YoY3%'])], ['ACC', `${esc(r['ACC(pp)'])} pp`],
-    ['G2（兩年）', pct(r['G2%'])], ['連續上升', `${esc(r['連續上升月數'])} 個月`], ['最新月營收', `${esc(r['最新月營收(億)'])} 億`]]
+    ['G2（兩年）', pct(r['G2%'])], ['連續上升', `${esc(r['連續上升月數'])} 個月`], ['最新月營收', `${esc(r['最新月營收(億)'])} 億`],
+    ['名單日成交量', `${fmtVol(volumeOn(r.code, day))} 張`]]
     .map(([k, v]) => `<div><small>${k}</small><b>${v}</b></div>`).join('');
   $('#d-flags').innerHTML = flags.length ? '警示：' + flags.map(f => `<span class="flag">${esc(f)}</span>`).join('') : '';
   $('#d-notes').innerHTML = lowBaseNotes(r);
