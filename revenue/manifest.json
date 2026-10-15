@@ -1,0 +1,10 @@
+{
+ "version": 1,
+ "kdf": "PBKDF2-SHA256",
+ "iterations": 600000,
+ "salt": "oFUOvQGDjulcBHPucadN6g==",
+ "cipher": "AES-256-GCM",
+ "file": "data-dc73d3cc683c7c1c6e6f76bb8f66e30b9f498e51265b922fe9c6a817c789903d.enc",
+ "content_mac": "ad675a4c537ed14b2dde08bec4e88f9daf3ed9acd0dd478015a7bfa3284c067d",
+ "generated_at": "2026-10-15T12:37:12+08:00"
+}
