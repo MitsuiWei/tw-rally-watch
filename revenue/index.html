@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#173d42">
+<link rel="icon" href="./favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="營收加速">
+<title>營收加速 · 強漲追蹤</title>
+<style>
+:root{--ink:#263642;--muted:#80909b;--line:#e7ecee;--teal:#167b70;--bg:#f4f6f7;--red:#c45158;--card:#fff;--soft:#f8fafb}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;font-family:Arial,"PingFang TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--ink);font-size:16px;-webkit-font-smoothing:antialiased}
+body.noscroll{overflow:hidden}
+button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:default;opacity:.4}
+a{color:inherit}
+:focus-visible{outline:3px solid #6bc7b6;outline-offset:2px}
+.lock{min-height:100vh;display:grid;place-items:center;padding:16px}
+.lock-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:32px;max-width:400px;width:100%;box-shadow:0 20px 50px #17364112}
+.brand{display:flex;align-items:center;gap:10px;color:#173d42;font-weight:700;font-size:20px;margin-bottom:6px}
+.brand img{display:block;width:36px;height:36px}
+.lock-card p{color:var(--muted);font-size:14px;line-height:1.7;margin:8px 0 20px}
+.lock-card input[type=password]{width:100%;height:44px;border:1px solid #d8e3e0;border-radius:8px;padding:0 12px;font-size:16px;background:#f9fbfb}
+.lock-card label{display:flex;gap:8px;align-items:center;font-size:14px;color:#5f7680;margin:12px 0 18px}
+.primary{width:100%;height:44px;border:0;border-radius:8px;background:#173d42;color:#fff;font-size:16px}
+#lock-msg{min-height:22px;font-size:14px;color:#b0574f;margin-top:12px}
+.wrap{max-width:1280px;margin:0 auto;padding:0 16px 40px}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+header.top a,header.top button{font-size:14px;color:#5f7f86;text-decoration:none;background:none;border:0;padding:0}
+h1{font-size:26px;margin:24px 0 6px}
+.lead{color:var(--muted);font-size:14px;line-height:1.7;margin:0 0 18px}
+.controls{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:16px}
+.controls select{height:36px;border:1px solid #dce7e3;border-radius:6px;background:#f7faf9;color:#3d655a;padding:0 8px;max-width:100%}
+.icon{height:36px;min-width:36px;border:1px solid #dce7e3;border-radius:6px;background:#fff;color:#5f7f86}
+.tabs{display:flex;background:#eef3f3;border-radius:8px;padding:3px;gap:3px}
+.tab{border:0;background:none;padding:7px 14px;border-radius:6px;color:#6a828b;font-size:15px}
+.tab.active{background:#fff;color:#173d42;font-weight:600;box-shadow:0 1px 3px #1f39401a}
+.search{height:36px;border:1px solid #e3e9eb;border-radius:6px;padding:0 10px;background:#f9fbfb;min-width:0;flex:1 1 160px;max-width:260px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:11px;overflow:hidden}
+.card-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;padding:16px 18px 6px;flex-wrap:wrap}
+.card-head b{font-size:17px}#count{font-size:13px;color:#658276;background:#eef3f3;border-radius:5px;padding:2px 7px;margin-left:6px}
+#tab-note{font-size:13px;color:var(--muted);padding:0 18px 12px;line-height:1.6}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;white-space:nowrap}
+th{text-align:left;background:var(--soft);border-top:1px solid #edf0f1;border-bottom:1px solid #edf0f1;font-size:13px;font-weight:500;color:#94a0a7;padding:0}
+th .sort{display:flex;align-items:center;gap:3px;width:100%;border:0;background:none;padding:11px 12px;font:inherit;color:inherit;text-align:inherit;white-space:nowrap}
+th.numeric .sort{justify-content:flex-end}th .sort:hover{color:#3e6670;background:#eef3f3}th .sort.on{color:#173d42;font-weight:600}
+th .sort i{font-style:normal;font-size:10px;min-width:8px}
+td{padding:11px 12px;border-bottom:1px solid #f0f2f3;font-size:14px}
+tbody tr[data-i]{cursor:pointer}tbody tr[data-i]:hover{background:#f6fbf9}
+td.stock b{display:block;font-size:15px}td.stock span{display:block;font-size:12px;color:#93a1a9;margin-top:3px}
+.numeric{text-align:right;font-variant-numeric:tabular-nums}
+.up{color:var(--red)}
+.flag{display:inline-block;font-size:12px;border-radius:4px;padding:2px 6px;margin:1px 3px 1px 0;background:#faf2e4;color:#a37c3f}
+.empty{color:var(--muted);text-align:center;padding:30px}
+.foot{font-size:12px;color:#9aa8af;margin-top:14px;line-height:1.7}
+.detail{position:fixed;inset:0;background:#152b3c66;display:flex;justify-content:flex-end;z-index:20}
+.panel{width:min(860px,100vw);background:#fff;overflow-y:auto;padding:20px 24px 30px;box-shadow:-20px 0 60px #142d3724}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.panel-head nav{display:flex;align-items:center;gap:8px;font-size:13px;color:#7c8f97}
+#d-title{font-size:24px;margin:6px 0 4px}#d-title small{display:block;font-size:13px;color:#8ea2ad;font-weight:400;margin-top:4px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 14px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:14px 0;margin:14px 0}
+.stats small{display:block;font-size:12px;color:#91a0a9;margin-bottom:4px}.stats b{font-size:15px;font-weight:600;color:#3e6670}
+#d-flags{font-size:13px;color:#a37c3f;margin-bottom:6px}
+.notes{background:#fbf6ec;border:1px solid #f0e2c6;border-radius:9px;padding:4px 16px 12px;margin:12px 0 4px;font-size:14px;line-height:1.7;color:#4b5a63}
+.notes h3{margin:10px 0 4px;color:#8a6a2f}.notes p{margin:4px 0}.notes b{color:#6f5524}
+.notes ul{margin:6px 0;padding-left:18px}.notes li{margin:4px 0}.notes li span{display:block;font-size:12px;color:#a08355}
+.notes li em{display:block;font-style:normal;color:#6b7b84;font-size:13px}.notes small{display:block;color:#a39a8a;font-size:12px;margin-top:6px}
+h3{font-size:15px;margin:18px 0 6px;color:#3b5560}
+.legend{font-size:12px;color:#86969f;display:flex;gap:16px;flex-wrap:wrap}.legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:5px}
+svg{width:100%;height:auto;display:block}
+.grid{stroke:#eef2f3}.tick{font-size:11px;fill:#93a1a9}.value{font-size:12px;fill:#3b5560;font-weight:600}
+.bar{fill:#a9b6bf}.bar-high{fill:#d64545}
+.zero{stroke:#333;stroke-dasharray:4 4}.yoy1{fill:none;stroke:#9aa5b1;stroke-width:1.3}.yoy3{fill:none;stroke:#d62728;stroke-width:3}.dot3{fill:#d62728}
+.close{fill:none;stroke:#2f5d68;stroke-width:1.8}.vol{fill:#c9d3d8}.vol-hot{fill:#d64545}.sma{fill:none;stroke:#e0a43a;stroke-width:1.4}.mark{stroke:#167b70;stroke-dasharray:3 3}.mark-text{font-size:11px;fill:#167b70}
+@media(max-width:640px){.lock-card{padding:24px}.panel{padding:14px 14px 24px}.stats{grid-template-columns:repeat(2,1fr)}h1{font-size:22px}.controls{padding:12px}}
+</style>
+</head>
+<body>
+<section class="lock" id="lock">
+  <form class="lock-card" id="lock-form" autocomplete="off">
+    <div class="brand"><img src="./favicon.svg" alt="" width="36" height="36">營收加速</div>
+    <p>這是強漲追蹤的私人頁面，資料已加密，需要輸入密碼才能在你的瀏覽器解開。</p>
+    <input type="password" id="password" placeholder="密碼" aria-label="密碼" required>
+    <label><input type="checkbox" id="remember"> 在這台裝置記住</label>
+    <button class="primary" id="unlock" type="submit">解鎖</button>
+    <div id="lock-msg" role="status"></div>
+  </form>
+</section>
+<main class="wrap" id="app" hidden>
+  <header class="top"><a href="../">← 強漲追蹤</a><button id="lock-now" type="button">鎖定並忘記此裝置</button></header>
+  <h1>營收加速</h1>
+  <p class="lead">每個交易日更新。點選日期與股票，可看近 18 個月營收（紅色為創 12 個月新高）、單月年增率與 YoY3、收盤價與 20 日均線。僅供個人研究，不構成投資建議。</p>
+  <div class="controls">
+    <button class="icon" id="prev-day" type="button" aria-label="前一天">‹</button>
+    <select id="date" aria-label="日期"></select>
+    <button class="icon" id="next-day" type="button" aria-label="後一天">›</button>
+    <input class="search" id="search" placeholder="搜尋代號或名稱" aria-label="搜尋">
+  </div>
+  <div class="card">
+    <div class="card-head"><b>營收剛轉強＋量增<span id="count"></span></b></div>
+    <div id="tab-note"></div>
+    <div class="scroll"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
+  </div>
+  <p class="foot"><span id="generated"></span>。營收資料來自 ToAlpha（僅供個人使用），股價為證交所／櫃買中心官方收盤價。</p>
+</main>
+<div class="detail" id="detail" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="d-title">
+    <div class="panel-head"><nav><button class="icon" id="d-prev" type="button" aria-label="上一檔">‹</button><span id="d-pos"></span><button class="icon" id="d-next" type="button" aria-label="下一檔">›</button></nav><button class="icon" id="d-close" type="button" aria-label="關閉">✕</button></div>
+    <h2 id="d-title"></h2>
+    <div class="stats" id="d-stats"></div>
+    <div id="d-flags"></div>
+    <div class="notes" id="d-notes" hidden></div>
+    <h3>近 18 個月營收（億元）</h3><div id="c-rev"></div>
+    <h3>年增率</h3><div class="legend"><span><i style="background:#9aa5b1"></i>單月年增率</span><span><i style="background:#d62728"></i>YoY3（3 個月滾動）</span></div><div id="c-yoy"></div>
+    <h3>收盤價</h3><div class="legend"><span><i style="background:#2f5d68"></i>收盤價</span><span><i style="background:#e0a43a"></i>20 日均線</span><span><i style="background:#167b70"></i>名單日期</span></div><div id="c-px"></div>
+    <h3>成交量（張）</h3><div class="legend"><span><i style="background:#c9d3d8"></i>每日成交量</span><span><i style="background:#d64545"></i>名單日前 5 天</span></div><div id="c-vol"></div>
+  </div>
+</div>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
